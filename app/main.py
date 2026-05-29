@@ -53,6 +53,17 @@ def create_page(request: Request):
     )
 
 
+@app.get("/about", response_class=HTMLResponse)
+def about(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="about.html",
+        context={
+            "request": request,
+        },
+    )
+
+
 @app.post("/create")
 def create_ad(
     title: str = Form(...),
