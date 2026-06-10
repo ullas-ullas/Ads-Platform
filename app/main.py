@@ -12,7 +12,7 @@ from . import crud
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None)
 
 static_dir = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
