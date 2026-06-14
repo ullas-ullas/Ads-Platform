@@ -1,11 +1,8 @@
 from pathlib import Path
-
 from fastapi import FastAPI, Request, Form, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-
 from sqlalchemy.orm import Session
 
 from .database import SessionLocal, engine, Base
@@ -15,20 +12,14 @@ from . import crud
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(docs_url=None, redoc_url=None)
-
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=["*"]
-)
+app = FastAPI()
+#app = FastAPI(docs_url=None, redoc_url=None) # use if you want to disable /docs and /redoc urls
 
 static_dir = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 templates = Jinja2Templates(directory="app/templates")
 
-from app.config import APP_VERSION
-templates.env.globals["APP_VERSION"] = APP_VERSION
 
 def get_db():
     db = SessionLocal()
@@ -38,28 +29,6 @@ def get_db():
     finally:
         db.close()
 
-
-@app.middleware("http")
-async def add_security_headers(request, call_next):
-    response = await call_next(request)
-
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "geolocation=()"
-
-    response.headers["Strict-Transport-Security"] = (
-        "max-age=31536000; includeSubDomains; preload"
-    )
-
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "img-src 'self' data:; "
-        "style-src 'self' 'unsafe-inline'; "
-        "script-src 'self' 'unsafe-inline'"
-    )
-
-    return response
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db)):

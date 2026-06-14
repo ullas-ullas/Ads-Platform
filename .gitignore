@@ -2,10 +2,3 @@ __pycache__/
 *.pyc
 .venv/
 *.db
-.env
-.vscode/
-.terraform/
-*.tfstate
-*.tfstate.backup
-/aws/
-terraform.tfvars
