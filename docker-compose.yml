@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:18
+    container_name: ads-postgres
+    restart: always
+
+    environment:                      # this injects env vars into the container
+      POSTGRES_DB: ads_platform
+      POSTGRES_USER: ads_user
+      POSTGRES_PASSWORD: ads_password
+
+    ports:
+      - '5432:5432'
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s 
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .                              # looks for dockerfile in the current dir . create an image using that and then runs it using provided name . image name is auto generated here but we can also provide it here
+    container_name: ads-platform
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    env_file:                                   # injects env vars defined inside .env into the container
+      - .env
+
+    ports:
+      - '8000:8000'
+
+volumes:
+  postgres_data:
